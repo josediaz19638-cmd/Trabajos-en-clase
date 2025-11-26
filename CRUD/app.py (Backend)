@@ -1,0 +1,37 @@
+from flask import Flask, render_template, request, jsonify
+from leer import leer_datos, modificar_datos, eliminar_datos
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    "renderizado de pagina principal"
+    return render_template('index.html')
+
+@app.route('/leer', methods=['GET'])
+def leer():
+    "leer datos de la hoja de calculo"
+    rango = request.args.get('rango', 'Hoja 1!A1:A10') #rango de lectura
+    datos = leer_datos(rango)
+    return jsonify({'datos' :datos})
+
+@app.route('/modificar', methods=['POST'])
+def modificar():
+    "modificar datos de la hoja de calculo"
+    payload = request.json or {}
+    rango = payload.get('rango', 'Hoja 1!A2:A3') #rango de modificacion
+    nuevos_valores = payload.get('nuevos_valores', [['']]) #agregar nuevos valores (default seguro)
+    modificar_datos(rango, nuevos_valores)
+    return jsonify({'mensaje': f'Datos modificados en {rango}.'})
+@app.route('/eliminar', methods=['POST'])
+
+def eliminar():
+    "eliminar datos de la hoja de calculo"
+    payload = request.json or {}
+    rango = payload.get('rango', 'Hoja 1!A1:A10') #rango de eliminacion (valor por defecto válido)
+    eliminar_datos(rango)
+    return jsonify({'mensaje': f'Datos eliminados en {rango}.'})
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
